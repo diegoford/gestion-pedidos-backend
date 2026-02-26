@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+
+  gestion_pedidos_db:
+    image: postgres:16
+    container_name: gestion_pedidos_db
+    environment:
+      POSTGRES_DB: gestion_pedidos
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  auth_service:
+    build: ./auth-service
+    container_name: auth_service
+    depends_on:
+      - gestion_pedidos_db
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://gestion_pedidos_db:5432/gestion_pedidos
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+
+volumes:
+  postgres_data:
