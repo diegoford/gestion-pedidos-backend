@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:postgresql://gestion_pedidos_db:5432/gestion_pedidos
     username: admin
-    password: admin123
+    password: admin
   jpa:
     hibernate:
       ddl-auto: update

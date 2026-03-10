@@ -1,30 +1,63 @@
-version: '3.8'
-
 services:
 
-  gestion_pedidos_db:
+  postgres:
     image: postgres:16
     container_name: gestion_pedidos_db
+    restart: always
     environment:
-      POSTGRES_DB: gestion_pedidos
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin123
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: gestion_pedidos
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+
+  api_gateway:
+    build: ./api-gateway
+    container_name: api_gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth_service
+      - catalog_service
+      - order_service
 
   auth_service:
     build: ./auth-service
     container_name: auth_service
-    depends_on:
-      - gestion_pedidos_db
     ports:
       - "8081:8081"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://gestion_pedidos_db:5432/gestion_pedidos
-      SPRING_DATASOURCE_USERNAME: admin
-      SPRING_DATASOURCE_PASSWORD: admin123
+    depends_on:
+      - postgres
+
+  catalog_service:
+    build: ./catalog-service
+    container_name: catalog_service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres
+
+  order_service:
+    build: ./order-service
+    container_name: order_service
+    ports:
+      - "8083:8083"
+    depends_on:
+      - postgres
+      - rabbitmq
 
 volumes:
   postgres_data:
